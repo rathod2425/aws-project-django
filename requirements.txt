@@ -2,3 +2,4 @@ django
 boto3
 django-storages
 python-dotenv
+mysqlclient

@@ -7,6 +7,12 @@
 
     Create the following variables, 
 
+    DB_NAME=
+    DB_USER=
+    DB_PASSWORD=
+    DB_HOST=
+    DB_PORT=
+
     AWS_ACCESS_KEY_ID=
     AWS_SECRET_ACCESS_KEY=
     AWS_STORAGE_BUCKET_NAME=
