@@ -4,3 +4,4 @@ django-storages
 python-dotenv
 mysqlclient
 django-cors-headers
+requests
