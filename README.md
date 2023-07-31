@@ -20,6 +20,9 @@
 
     Paste the credentials.
 
+    In Linux:
+        sudo apt-get install python3-dev default-libmysqlclient-dev build-essential pkg-config -y
+    
     pip install -r requirements.txt
     python mange.py migrate
     python manage.py createsuperuser
