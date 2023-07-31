@@ -3,4 +3,4 @@ boto3
 django-storages
 python-dotenv
 mysqlclient
-corsheaders
+django-cors-headers
