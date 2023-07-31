@@ -4,7 +4,8 @@ from django.core.files.storage import default_storage
 from django.conf import settings
 from .models import UploadedFile
 import boto3
-from io import BytesIO 
+from io import BytesIO
+import requests 
 from django.http import Http404, HttpResponse
 from django.http import JsonResponse
 
@@ -18,12 +19,39 @@ def page2(request):
     return JsonResponse({'s3_url': latest_file.s3_url})
 
 
-# To resolve the 403 Forbidden error, you can try adding CSRF protection to 
-# your Django API views. You can do this by using the @csrf_exempt decorator 
-# for the views that handle API requests.
-
-
-@csrf_exempt    # Add the csrf_exempt decorator to the view
+def generate_presigned_url(bucket_name, object_name, expiration=3600):
+        s3_client = boto3.client('s3')
+        try:
+            response = s3_client.generate_presigned_url('put_object',
+                                                     Params={'Bucket': bucket_name,
+                                                             'Key': object_name,
+                                                            },
+                                                     ExpiresIn=expiration,)
+        except Exception as e:
+            print("Error generating pre-signed URL:", e)
+            return None
+        
+        return response
+    
+def upload_file_to_s3(url, file_content):
+        try:
+            print('n tryy')
+            response = requests.put(url, data=BytesIO(file_content))
+            print('responseee  : ',response)
+                
+            if response.status_code == 200:
+                print("File uploaded successfully!")
+                return True
+            else:
+                print(f"Failed to upload file. Response status code: {response.status_code}")
+                print(response.text)
+                return False
+        except Exception as e:
+            print("Error uploading file:", e)
+            return False
+        
+        
+@csrf_exempt  # Add the csrf_exempt decorator to the view
 def upload_file(request):
     if request.method == 'POST' and request.FILES['file']:
         file = request.FILES['file']
@@ -33,18 +61,24 @@ def upload_file(request):
         # Ensure file is read in binary mode (bytes-like object)
         file_content = file.read()
         
-        # Upload file to AWS S3 bucket
-        s3 = boto3.client('s3')
-        s3_file_path = f"uploaded_files/{file.name}"      
-        s3.upload_fileobj(BytesIO(file_content), settings.AWS_STORAGE_BUCKET_NAME , s3_file_path, ExtraArgs={'ACL': 'public-read'})
-        
-        # Save file details in the database
-        UploadedFile.objects.create(
-            file_name=file_name,
-            file_description=file_description,
-            s3_url=f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3.{settings.AWS_S3_REGION_NAME}.amazonaws.com/{s3_file_path}"
-        )
+        # object_name = os.path.basename(file_path)
+        presigned_url = generate_presigned_url('django-project-s3', file_name)
+    
+        if presigned_url: 
+            # Upload the file to S3 using the presigned URL
+            
+            upload_result = upload_file_to_s3(presigned_url,file_content)
+            if upload_result:
+                print("File upload process completed successfully.")
+            else:
+                print("File upload process failed.")
+                return None
+        else:
+            print("Presigned URL generation failed.")
+            return None
 
         return redirect('page2')
-    return HttpResponse("Please use POST method !!!")
-    # return render(request, 'page1.html')
+    return render(request, 'page1.html')
+
+
+
