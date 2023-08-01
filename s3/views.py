@@ -12,11 +12,7 @@ from django.http import JsonResponse
 
 
 def page2(request):
-    # Get the latest uploaded file details from the database
-    latest_file = UploadedFile.objects.latest('id')
-    
-    # Send the file URL as a JSON response
-    return JsonResponse({'s3_url': latest_file.s3_url})
+      return render(request, 'page2.html')
 
 
 def generate_presigned_url(bucket_name, object_name, expiration=3600):
