@@ -8,7 +8,7 @@ from io import BytesIO
 import requests 
 from django.http import Http404, HttpResponse
 from django.http import JsonResponse
-
+from botocore.client import Config
 
 
 def page2(request):
@@ -16,7 +16,7 @@ def page2(request):
 
 
 def generate_presigned_url(bucket_name, object_name, expiration=3600):
-        s3_client = boto3.client('s3')
+        s3_client = boto3.client('s3',config=Config(signature_version='s3v4'),region_name="ap-south-1")
         try:
             response = s3_client.generate_presigned_url('put_object',
                                                      Params={'Bucket': bucket_name,
